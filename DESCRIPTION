@@ -1,0 +1,19 @@
+Type: Package
+Package: resetGLM
+Title: RESET tests for GLMs (including PPMLs)
+Version: 0.0.1
+Authors@R: 
+    person("Ryan T.", "Godwin", , "ryan.godwin@umanitoba.ca", role = c("aut", "cre"))
+Author: Ryan T. Godwin [aut, cre]
+Maintainer: Ryan T. Godwin <ryan.godwin@umanitoba.ca>
+Description: Performs an array of RESETs (regression equation specification error test) for generalized linear models (GLMs), including pseudo Poisson maximum likelihood (PPML) models used in gravity models of trade. Variants of the RESET tests include: differing number of augmenting terms; either or both Taylor and Fourier series approximations; sine or linear transformation link under Fourier; robust or non-robust to a GLM variance assumption; and Wald or Lagrange multiplier (LM) versions. The reset tests accept models of type "glm" or "fixest". The current recommended version of the RESET is the robust LM Fourier sine link with 4 augmenting terms. This is the default LM test and is called using resetlm(model, data).
+License: GPL (>= 3)
+Encoding: UTF-8
+LazyData: false
+Imports:
+    stats,
+    sandwich,
+    lmtest,
+    fixest
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
