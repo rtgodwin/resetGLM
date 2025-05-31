@@ -52,71 +52,64 @@
 reset <- function(mod, data) {
   z <- list()
   
-  #GLM versions
+  for (test_fun in c("resetWald", "resetlm")) {
+    for (robust in c(FALSE, TRUE)) {
+      for (fourier in c(FALSE, TRUE)) {
+        for (aug.terms in 1:4) {
+          
+          # Skip invalid Fourier aug.terms (must be even)
+          if (fourier && aug.terms %% 2 != 0) next
+          
+          for (sin.link in if (fourier) c(TRUE, FALSE) else NA) {
+            
+            tag <- paste0(
+              if (test_fun == "resetWald") "Wald" else "lm", ".",
+              if (robust) "robust" else "GLM", ".",
+              if (fourier) paste0("Fourier.", if (sin.link) "sinlink" else "linlink") else "Taylor",
+              ".aug", aug.terms
+            )
+            
+            z[[tag]] <- tryCatch(
+              do.call(test_fun, list(
+                mod = mod,
+                data = data,
+                aug.terms = aug.terms,
+                robust = robust,
+                fourier = fourier,
+                sin.link = if (!is.na(sin.link)) sin.link else NULL
+              )),
+              warning = function(w) "GLM failed to converge",
+              error = function(e) "GLM failed to converge"
+            )
+          }
+        }
+      }
+    }
+  }
   
-  #Wald
-  z$Wald.GLM.Taylor.aug1 <- resetWald(mod, data, aug.terms = 1, robust = F, fourier = F)
-  z$Wald.GLM.Taylor.aug2 <- resetWald(mod, data, aug.terms = 2, robust = F, fourier = F)
-  z$Wald.GLM.Taylor.aug3 <- tryCatch(
-    resetWald(mod, data, aug.terms = 3, robust = F, fourier = F),
-    warning = function(w) {z$Wald.GLM.Taylor.aug3 <<- "GLM failed to converge"})
-  z$Wald.GLM.Taylor.aug4 <- resetWald(mod, data, aug.terms = 4, robust = F, fourier = F)
-  
-  z$Wald.GLM.Fourier.sinlink.aug2 <- resetWald(mod, data, aug.terms = 2, robust = F, fourier = T, sin.link = T)
-  z$Wald.GLM.Fourier.sinlink.aug4 <- resetWald(mod, data, aug.terms = 4, robust = F, fourier = T, sin.link = T)
-  
-  z$Wald.GLM.Fourier.linlink.aug2 <- resetWald(mod, data, aug.terms = 2, robust = F, fourier = T, sin.link = F)
-  z$Wald.GLM.Fourier.linlink.aug4 <- resetWald(mod, data, aug.terms = 4, robust = F, fourier = T, sin.link = F)
-  
-  z$Wald.GLM.combined.sinlink <- resetWaldTF(mod, data, robust = F, sin.link = T)
-  z$Wald.GLM.combined.linlink <- resetWaldTF(mod, data, robust = F, sin.link = F)
-  
-  #LM
-  z$lm.GLM.Taylor.aug1 <- resetlm(mod, data, aug.terms = 1, robust = F, fourier = F)
-  z$lm.GLM.Taylor.aug2 <- resetlm(mod, data, aug.terms = 2, robust = F, fourier = F)
-  z$lm.GLM.Taylor.aug3 <- resetlm(mod, data, aug.terms = 3, robust = F, fourier = F)
-  z$lm.GLM.Taylor.aug4 <- resetlm(mod, data, aug.terms = 4, robust = F, fourier = F)
-  
-  z$lm.GLM.Fourier.sinlink.aug2 <- resetlm(mod, data, aug.terms = 2, robust = F, fourier = T, sin.link = T)
-  z$lm.GLM.Fourier.sinlink.aug4 <- resetlm(mod, data, aug.terms = 4, robust = F, fourier = T, sin.link = T)
-  
-  z$lm.GLM.Fourier.linlink.aug2 <- resetlm(mod, data, aug.terms = 2, robust = F, fourier = T, sin.link = F)
-  z$lm.GLM.Fourier.linlink.aug4 <- resetlm(mod, data, aug.terms = 4, robust = F, fourier = T, sin.link = F)
-  
-  z$lm.GLM.combined.sinlink <- resetlmTF(mod, data, robust = F, sin.link = T)
-  z$lm.GLM.combined.linlink <- resetlmTF(mod, data, robust = F, sin.link = F)
-  
-  #robust versions
-  
-  #Wald
-  z$Wald.robust.Taylor.aug1 <- resetWald(mod, data, aug.terms = 1, robust = T, fourier = F)
-  z$Wald.robust.Taylor.aug2 <- resetWald(mod, data, aug.terms = 2, robust = T, fourier = F)
-  z$Wald.robust.Taylor.aug3 <- resetWald(mod, data, aug.terms = 3, robust = T, fourier = F)
-  z$Wald.robust.Taylor.aug4 <- resetWald(mod, data, aug.terms = 4, robust = T, fourier = F)
-  
-  z$Wald.robust.Fourier.sinlink.aug2 <- resetWald(mod, data, aug.terms = 2, robust = T, fourier = T, sin.link = T)
-  z$Wald.robust.Fourier.sinlink.aug4 <- resetWald(mod, data, aug.terms = 4, robust = T, fourier = T, sin.link = T)
-  
-  z$Wald.robust.Fourier.linlink.aug2 <- resetWald(mod, data, aug.terms = 2, robust = T, fourier = T, sin.link = F)
-  z$Wald.robust.Fourier.linlink.aug4 <- resetWald(mod, data, aug.terms = 4, robust = T, fourier = T, sin.link = F)
-  
-  z$Wald.robust.combined.sinlink <- resetWaldTF(mod, data, robust = T, sin.link = T)
-  z$Wald.robust.combined.linlink <- resetWaldTF(mod, data, robust = T, sin.link = F)
-  
-  #LM
-  z$lm.robust.Taylor.aug1 <- resetlm(mod, data, aug.terms = 1, robust = T, fourier = F)
-  z$lm.robust.Taylor.aug2 <- resetlm(mod, data, aug.terms = 2, robust = T, fourier = F)
-  z$lm.robust.Taylor.aug3 <- resetlm(mod, data, aug.terms = 3, robust = T, fourier = F)
-  z$lm.robust.Taylor.aug4 <- resetlm(mod, data, aug.terms = 4, robust = T, fourier = F)
-  
-  z$lm.robust.Fourier.sinlink.aug2 <- resetlm(mod, data, aug.terms = 2, robust = T, fourier = T, sin.link = T)
-  z$lm.robust.Fourier.sinlink.aug4 <- resetlm(mod, data, aug.terms = 4, robust = T, fourier = T, sin.link = T)
-  
-  z$lm.robust.Fourier.linlink.aug2 <- resetlm(mod, data, aug.terms = 2, robust = T, fourier = T, sin.link = F)
-  z$lm.robust.Fourier.linlink.aug4 <- resetlm(mod, data, aug.terms = 4, robust = T, fourier = T, sin.link = F)
-  
-  z$lm.robust.combined.sinlink <- resetlmTF(mod, data, robust = T, sin.link = T)
-  z$lm.robust.combined.linlink <- resetlmTF(mod, data, robust = T, sin.link = F)
+  # Combined Fourier-Taylor tests (only aug.terms = 4 used internally)
+  for (test_fun in c("resetWaldTF", "resetlmTF")) {
+    for (robust in c(FALSE, TRUE)) {
+      for (sin.link in c(TRUE, FALSE)) {
+        tag <- paste0(
+          if (test_fun == "resetWaldTF") "Wald" else "lm", ".",
+          if (robust) "robust" else "GLM",
+          ".combined.", if (sin.link) "sinlink" else "linlink"
+        )
+        
+        z[[tag]] <- tryCatch(
+          do.call(test_fun, list(
+            mod = mod,
+            data = data,
+            robust = robust,
+            sin.link = sin.link
+          )),
+          warning = function(w) "GLM failed to converge",
+          error = function(e) "GLM failed to converge"
+        )
+      }
+    }
+  }
   
   return(z)
 }
